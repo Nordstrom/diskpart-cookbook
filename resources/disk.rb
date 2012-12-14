@@ -18,8 +18,9 @@
 # limitations under the License.
 #
 
-actions :online, :convert
+actions :online, :convert, :extend, :assign, :offline
 
 attribute :number, :type_of => Integer
+attribute :letter, :type_of => String, :name_attribute => true
 
 default_action :online
