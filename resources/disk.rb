@@ -21,7 +21,6 @@
 actions :online, :convert, :offline
 
 attribute :number, :kind_of => Integer
-attribute :letter, :kind_of => String, :name_attribute => true
 attribute :type, :kind_of => Symbol, :default => :mbr
 
 default_action :online
