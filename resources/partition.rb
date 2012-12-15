@@ -17,3 +17,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+actions :create, :format, :assign
+
+attribute :number, :kind_of => Integer
+attribute :align, :kind_of => Integer, :default => 1024
+attribute :fs, :kind_of => Symbol, :default => :ntfs
+attribute :letter, :kind_of => string, :name_attribute => true
+
+default_action :create
