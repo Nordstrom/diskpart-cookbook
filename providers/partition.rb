@@ -21,6 +21,12 @@ include Windows::Helper
 include Chef::Mixin::ShellOut
 
 action :create do
+  number = @new_resource.disk_number
+  align = @new_resource.align
+
+  unless exists?(number)
+    create_partition(disk, align)
+  end
 end
 
 action :format do
@@ -30,6 +36,23 @@ action :assign do
 end
 
 private
+
+def exists?(disk)
+  @exists ||= begin
+    setup_script("select disk #{disk}\ndetail disk")
+    cmd = shell_out("#{diskpart}", {:returns => [0]})
+    check_for_errors(cmd, "Disk ID:")
+    !(cmd.stdout =~ /There are no volumes/i)
+  end
+end
+
+def create_partition(disk, align)
+  Chef::Log.debug("Creating partition on Disk #{disk} aligned to #{align}")
+  setup_script("select disk #{disk}\ncreate partition primary align=#{align}")
+  cmd = shell_out("#{diskpart}", {:returns => [0]})
+  check_for_errors(cmd, "DiskPart succeeded in creating the specified partition")
+end
+
 def check_for_errors(cmd, expected)
   unless cmd.stderr.empty?
     Chef::Application.fatal!(cmd.stderr)
