@@ -77,7 +77,7 @@ end
 
 def assigned?(disk, letter)
   volume_info = get_volume_info(disk)
-  !(volume_info[:letter].nil?) && letter == volume_info[:letter]
+  letter.downcase == volume_info[:letter].downcase
 end
 
 def create_partition(disk, align)
