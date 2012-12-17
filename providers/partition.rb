@@ -120,6 +120,8 @@ def get_volume_info(disk)
     :fs => fs.nil? ? nil : fs.rstrip.lstrip
   }
 
+  Chef::Log.debug("Volume info for disk #{disk}: #{info}")
+
   info
 end
 
