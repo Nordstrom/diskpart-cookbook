@@ -22,14 +22,20 @@ include Chef::Mixin::ShellOut
 
 action :online do
   number = @new_resource.number
+  updated = false
+
   unless online?(number)
     bring_online(number)
+    updated = true
   end
+
+  @new_resource.updated_by_last_action(updated)
 end
 
 action :convert do
   number = @new_resource.number
   type = @new_resource.type
+  updated = false
 
   disk_info = get_disk_info(number)
 
@@ -37,27 +43,38 @@ action :convert do
   when :gpt
     unless disk_info[:gpt]
       convert_disk(number, "GPT")
+      updated = true
     end
   when :mbr
     if disk_info[:gpt]
       convert_disk(number, "MBR")
+      updated = true
     end
   when :basic
     if disk_info[:dyn]
       convert_disk(number, "BASIC")
+      updated = true
     end
   when :dynamic
     unless disk_info[:dyn]
       convert_disk(number, "DYNAMIC")
+      updated = true
     end
   end
+
+  @new_resource.updated_by_last_action(updated)
 end
 
 action :offline do
   number = @new_resource.number
+  updated = false
+
   if online?(number)
     take_offline(number)
+    updated = true
   end
+
+  @new_resource.updated_by_last_action(updated)
 end
 
 private
