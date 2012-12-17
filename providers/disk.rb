@@ -83,7 +83,7 @@ def get_disk_info(disk)
 end
 
 def clear_read_only(disk)
-  Chef::Log.debug("Bringing Disk #{disk} online")
+  Chef::Log.debug("Clearing Read-only on Disk #{disk}")
   setup_script("select disk #{disk}\nattributes disk clear readonly")
   cmd = shell_out("#{diskpart}", {:returns => [0]})
 
