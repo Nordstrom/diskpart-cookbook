@@ -23,27 +23,61 @@ include Chef::Mixin::ShellOut
 action :create do
   number = @new_resource.disk_number
   align = @new_resource.align
+  updated = false
 
   unless exists?(number)
-    create_partition(disk, align)
+    create_partition(number, align)
+    updated = true
   end
+
+  @new_resource.updated_by_last_action(updated)
 end
 
 action :format do
+  number = @new_resource.disk_number
+  fs = @new_resource.fs
+  updated = false
+
+  unless formatted?(number)
+    format(number, fs)
+    updated = true
+  end
+
+  @new_resource.updated_by_last_action(updated)
 end
 
 action :assign do
+  number = @new_resource.disk_number
+  letter = @new_resource.letter
+  updated = false
+
+  letter = letter.gsub(":", "")
+  letter = letter.gsub("/", "")
+  letter = letter.gsub("\\", "")
+
+  unless assigned?(number, letter)
+    assign(number, letter)
+    updated = true
+  end
+
+  @new_resource.updated_by_last_action(updated)
 end
 
 private
 
 def exists?(disk)
-  @exists ||= begin
-    setup_script("select disk #{disk}\ndetail disk")
-    cmd = shell_out("#{diskpart}", {:returns => [0]})
-    check_for_errors(cmd, "Disk ID:")
-    !(cmd.stdout =~ /There are no volumes/i)
-  end
+  volume_info = get_volume_info(disk)
+  !(volume_info[:volume].nil?)
+end
+
+def formatted?(disk)
+  volume_info = get_volume_info(disk)
+  !(volume_info[:fs] == "RAW")
+end
+
+def assigned?(disk, letter)
+  volume_info = get_volume_info(disk)
+  !(volume_info[:letter].nil?) && letter == volume_info[:letter]
 end
 
 def create_partition(disk, align)
@@ -51,6 +85,42 @@ def create_partition(disk, align)
   setup_script("select disk #{disk}\ncreate partition primary align=#{align}")
   cmd = shell_out("#{diskpart}", {:returns => [0]})
   check_for_errors(cmd, "DiskPart succeeded in creating the specified partition")
+end
+
+def format(disk, fs)
+  volume_info = get_volume_info(disk)
+
+  Chef::Log.debug("Formatting disk #{disk}, Volume #{volume_info[:volume_number]} with file system #{fs.to_s}")
+  setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nformat fs=#{fs.to_s} quick")
+  cmd = shell_out("#{diskpart}", {:returns => [0]})
+  check_for_errors(cmd, "DiskPart successfully formatted the volume")
+end
+
+def assign(disk, letter)
+  volume_info = get_volume_info(disk)
+
+  Chef::Log.debug("Assigning letter #{letter} to disk #{disk}, volume #{volume_info[:volume_number]}")
+  setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nassign letter=#{letter}")
+  cmd = shell_out("#{diskpart}", {:returns => [0]})
+  check_for_errors(cmd, "DiskPart successfully assigned the drive letter or mount point")
+end
+
+def get_volume_info(disk)
+  setup_script("select disk #{disk}\ndetail disk")
+  cmd = shell_out("#{diskpart}", {:returns => [0]})
+  check_for_errors(cmd, "Disk ID:")
+  /(?<volume>Volume\s(?<volume_number>\d{1,3}))\s{2,4}(?<letter>\s{3}|\s\w\s)\s{2}(?<label>.{0,11})\s{2}(?<fs>RAW|FAT|FAT32|exFAT|NTFS)\s{2,4}/i =~ cmd.stdout
+
+  info =
+  {
+    :volume => volume.nil? ? nil : volume.rstrip.lstrip,
+    :volume_number => volume_number.nil? ? nil : volume_number.rstrip.lstrip,
+    :letter => letter.nil? ? nil : letter.rstrip.lstrip,
+    :label => label.nil? ? nil : label.rstrip.lstrip,
+    :fs => fs.nil? ? nil : fs.rstrip.lstrip
+  }
+
+  info
 end
 
 def check_for_errors(cmd, expected)
@@ -66,9 +136,7 @@ end
 def diskpart
   script_file = "#{Chef::Config[:file_cache_path]}/diskpart.script"
 
-  @diskpart ||= begin
-    "#{locate_sysnative_cmd("diskpart.exe")} /s #{script_file}"
-  end
+  "#{locate_sysnative_cmd("diskpart.exe")} /s #{script_file}"
 end
 
 def setup_script(cmd)
