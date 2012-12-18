@@ -111,6 +111,7 @@ def get_volume_info(disk)
   check_for_errors(cmd, "Disk ID:")
   /(?<volume>Volume\s(?<volume_number>\d{1,3}))\s{2,4}(?<letter>\s{3}|\s\w\s)\s{2}(?<label>.{0,11})\s{2}(?<fs>RAW|FAT|FAT32|exFAT|NTFS)\s{2,4}/i =~ cmd.stdout
 
+  info = {}
   info =
   {
     :volume => volume.nil? ? nil : volume.rstrip.lstrip,
@@ -120,12 +121,11 @@ def get_volume_info(disk)
     :fs => fs.nil? ? nil : fs.rstrip.lstrip
   }
 
-  Chef::Log.debug("Volume info for disk #{disk}: #{info}")
-
-  info
+  return info
 end
 
 def check_for_errors(cmd, expected)
+  Chef::Log.debug(cmd.stdout)
   unless cmd.stderr.empty?
     Chef::Application.fatal!(cmd.stderr)
   end

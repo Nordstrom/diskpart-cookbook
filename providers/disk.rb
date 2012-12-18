@@ -130,6 +130,8 @@ def take_offline(disk)
 end
 
 def check_for_errors(cmd, expected)
+  Chef::Log.debug(cmd.stdout)
+  
   unless cmd.stderr.empty?
     Chef::Application.fatal!(cmd.stderr)
   end
