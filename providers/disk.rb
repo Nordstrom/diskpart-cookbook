@@ -22,16 +22,11 @@ include Chef::Mixin::ShellOut
 
 action :online do
   number = @new_resource.number
-  sleep_timer = @new_resource.sleep
   updated = false
 
   unless online?(number)
     bring_online(number)
-
-    # HACK Sleep for X seconds to give windows a chance to read the disk to see if there are any 
-    # volumes to mount.  Necessary when trying to create a partition immediately after online'ing a
-    # disk in a recipe.  Default is 1 second
-    sleep(sleep_timer)
+    sleep(@new_resource.sleep)
     updated = true
   end
 
@@ -49,21 +44,25 @@ action :convert do
   when :gpt
     unless disk_info[:gpt]
       convert_disk(number, "GPT")
+      sleep(@new_resource.sleep)
       updated = true
     end
   when :mbr
     if disk_info[:gpt]
       convert_disk(number, "MBR")
+      sleep(@new_resource.sleep)
       updated = true
     end
   when :basic
     if disk_info[:dyn]
       convert_disk(number, "BASIC")
+      sleep(@new_resource.sleep)
       updated = true
     end
   when :dynamic
     unless disk_info[:dyn]
       convert_disk(number, "DYNAMIC")
+      sleep(@new_resource.sleep)
       updated = true
     end
   end
@@ -77,6 +76,7 @@ action :offline do
 
   if online?(number)
     take_offline(number)
+    sleep(@new_resource.sleep)
     updated = true
   end
 

@@ -27,6 +27,7 @@ action :create do
 
   unless exists?(number)
     create_partition(number, align)
+    sleep(@new_resource.sleep)
     updated = true
   end
 
@@ -40,6 +41,7 @@ action :format do
 
   unless formatted?(number)
     format(number, fs)
+    sleep(@new_resource.sleep)
     updated = true
   end
 
@@ -57,6 +59,7 @@ action :assign do
 
   unless assigned?(number, letter)
     assign(number, letter)
+    sleep(@new_resource.sleep)
     updated = true
   end
 
