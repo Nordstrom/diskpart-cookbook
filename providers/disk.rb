@@ -30,7 +30,7 @@ action :online do
     updated = true
   end
 
-  @new_resource.updated_by_last_action(updated)
+  new_resource.updated_by_last_action(updated)
 end
 
 action :convert do
@@ -69,7 +69,7 @@ action :convert do
     end
   end
 
-  @new_resource.updated_by_last_action(updated)
+  new_resource.updated_by_last_action(updated)
 end
 
 action :offline do
@@ -82,14 +82,14 @@ action :offline do
     updated = true
   end
 
-  @new_resource.updated_by_last_action(updated)
+  new_resource.updated_by_last_action(updated)
 end
 
 private
 def online?(disk)
   @online ||= begin
     setup_script("list disk")
-    cmd = shell_out("#{diskpart}", {:returns => [0]})
+    cmd = shell_out(diskpart, { :returns => [0] })
     check_for_errors(cmd, "Disk ###")
     cmd.stdout =~ /Disk #{disk}\s*Online/i
   end
@@ -97,7 +97,7 @@ end
 
 def get_disk_info(disk)
   setup_script("list disk")
-  cmd = shell_out("#{diskpart}", {:returns => [0]})
+  cmd = shell_out(diskpart, { :returns => [0] })
   check_for_errors(cmd, "Disk ###")
 
   disk_type = {}
@@ -112,7 +112,7 @@ end
 def clear_read_only(disk)
   Chef::Log.debug("Clearing Read-only on Disk #{disk}")
   setup_script("select disk #{disk}\nattributes disk clear readonly")
-  cmd = shell_out("#{diskpart}", {:returns => [0]})
+  cmd = shell_out(diskpart, { :returns => [0] })
 
   check_for_errors(cmd, "Disk attributes cleared successfully")
 end
@@ -120,7 +120,7 @@ end
 def convert_disk(disk, type)
   Chef::Log.debug("Converting Disk #{disk} to #{type}")
   setup_script("select disk #{disk}\nconvert #{type}")
-  cmd = shell_out("#{diskpart}", {:returns => [0]})
+  cmd = shell_out(diskpart, { :returns => [0] })
 
   check_for_errors(cmd, "DiskPart successfully converted the selected disk to #{type} format")
 end
@@ -130,7 +130,7 @@ def bring_online(disk)
 
   Chef::Log.debug("Bringing Disk #{disk} online")
   setup_script("select disk #{disk}\nonline disk")
-  cmd = shell_out("#{diskpart}", {:returns => [0]})
+  cmd = shell_out(diskpart, { :returns => [0] })
 
   check_for_errors(cmd, "DiskPart successfully onlined the selected disk")
 end
