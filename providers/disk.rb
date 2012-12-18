@@ -22,10 +22,16 @@ include Chef::Mixin::ShellOut
 
 action :online do
   number = @new_resource.number
+  sleep_timer = @new_resource.sleep
   updated = false
 
   unless online?(number)
     bring_online(number)
+
+    # HACK Sleep for X seconds to give windows a chance to read the disk to see if there are any 
+    # volumes to mount.  Necessary when trying to create a partition immediately after online'ing a
+    # disk in a recipe.  Default is 1 second
+    sleep(sleep_timer)
     updated = true
   end
 
@@ -116,13 +122,13 @@ def convert_disk(disk, type)
 end
 
 def bring_online(disk)
+  clear_read_only(disk)
+
   Chef::Log.debug("Bringing Disk #{disk} online")
   setup_script("select disk #{disk}\nonline disk")
   cmd = shell_out("#{diskpart}", {:returns => [0]})
 
   check_for_errors(cmd, "DiskPart successfully onlined the selected disk")
-
-  clear_read_only(disk)
 end
 
 def take_offline(disk)
@@ -130,8 +136,6 @@ def take_offline(disk)
 end
 
 def check_for_errors(cmd, expected)
-  Chef::Log.debug(cmd.stdout)
-  
   unless cmd.stderr.empty?
     Chef::Application.fatal!(cmd.stderr)
   end
@@ -155,5 +159,6 @@ def setup_script(cmd)
   ::File.delete(script_file) if ::File.exists?(script_file)
   ::File.open(script_file, 'w') do |script|
     script.write(cmd)
+    script.write("\nexit")
   end
 end

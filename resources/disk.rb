@@ -22,5 +22,6 @@ actions :online, :convert, :offline
 
 attribute :number, :kind_of => Integer
 attribute :type, :kind_of => Symbol, :default => :mbr
+attribute :sleep, :kind_of => Integer, :default => 1
 
 default_action :online
