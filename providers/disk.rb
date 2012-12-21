@@ -40,6 +40,8 @@ action :convert do
 
   disk_info = get_disk_info(number)
 
+  # switch on the disk type to figure out what type
+  # of disk conversion we are doing
   case type
   when :gpt
     unless disk_info[:gpt]
@@ -99,6 +101,8 @@ def get_disk_info(disk)
   check_for_errors(cmd, "Disk ###")
 
   disk_type = {}
+  # Parse the output from diskpart looking for the * in the dyn and gpt columns to determine
+  # if the disk is dynamic or gpt
   disk_type[:dyn] = (/Disk #{disk}\s*(Offline|Online)(\s*\d*.\w{2}\s*\d*.\w{2})(.{3}\*)/i =~ cmd.stdout)
   disk_type[:gpt] = (/Disk #{disk}\s*(Offline|Online)(\s*\d*.\w{2}\s*\d*.\w{2})(.{3}\*|.{4})(.{4}\*)/i =~ cmd.stdout)
 
@@ -156,6 +160,9 @@ def diskpart
 end
 
 def setup_script(cmd)
+  # Diskpart scripting requires an input script file.  We need to
+  # check to see if it already exists from our last command and
+  # delete it if it does before writing the new commands
   ::File.delete(script_file) if ::File.exists?(script_file)
   ::File.open(script_file, 'w') do |script|
     script.write(cmd)
