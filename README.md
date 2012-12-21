@@ -26,29 +26,27 @@ see the partition.  If you check immediately for a partition on that disk you wi
 Partition Attributes
 ====================
 
-  :disk_number, :kind_of => Integer
-  :align, :kind_of => Integer, :default => 1024
-  :fs, :kind_of => Symbol, :default => :ntfs
-  :letter, :kind_of => String, :name_attribute => true
-  :sleep, :kind_of => Integer, :default => 1`
+```attribute :disk_number, :kind_of => Integer
+attribute :align, :kind_of => Integer, :default => 1024
+attribute :fs, :kind_of => Symbol, :default => :ntfs
+attribute :letter, :kind_of => String, :name_attribute => true
+attribute :sleep, :kind_of => Integer, :default => 1```
 
 Disk Attributes
 ===============
 
-  :number, :kind_of => Integer
-  :type, :kind_of => Symbol, :default => :mbr
-  :sleep, :kind_of => Integer, :default => 1
+```attribute :number, :kind_of => Integer
+attribute :type, :kind_of => Symbol, :default => :mbr
+attribute :sleep, :kind_of => Integer, :default => 1```
 
 Partition Actions
 =================
 
-  :create - default
-  :format
-  :assign
+```actions :create, :format, :assign
+default_action :create```
 
 Disk Actions
 ============
 
-  :online - default
-  :convert
-  :offline
+```actions :online, :convert, :offline
+default_action :online```
