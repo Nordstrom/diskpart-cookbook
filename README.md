@@ -23,30 +23,37 @@ chance to catch up before moving to the next command.  A great example of this i
 partitioned and formatted but is offline.  When bringing that disk online you must stall for a few seconds so the OS can
 see the partition.  If you check immediately for a partition on that disk you will be told there is not one and then your create partition will fail.
 
-Partition Attributes
-====================
-
-```attribute :disk_number, :kind_of => Integer```
-```attribute :align, :kind_of => Integer, :default => 1024```
-```attribute :fs, :kind_of => Symbol, :default => :ntfs```
-```attribute :letter, :kind_of => String, :name_attribute => true```
-```attribute :sleep, :kind_of => Integer, :default => 1```
-
-Disk Attributes
-===============
-
-```attribute :number, :kind_of => Integer```
-```attribute :type, :kind_of => Symbol, :default => :mbr```
-```attribute :sleep, :kind_of => Integer, :default => 1```
-
-Partition Actions
+Resource/Provider
 =================
 
-```actions :create, :format, :assign```
-```default_action :create```
+diskpart\_disk
+------------------
 
-Disk Actions
-============
+### Actions
 
-```actions :online, :convert, :offline```
-```default_action :online```
+- :online: Brings the disk online (default)
+- :convert: Converts to specified disk format
+- :offline: Brings a disk offline
+
+### Attribute Parameters
+
+- :number: The disk number to operate on
+- :type: The type of disk (:gpt, :mbr - default, :dynamic, :basic)
+- :sleep: The amount of time to sleep after executing command (default is 1)
+
+diskpart\_partition
+------------------
+
+### Actions
+
+- :create: Create new primary partition (default)
+- :format: Format partition
+- :assign: Assign a drive letter to partition
+
+### Attribute Parameters
+
+- :disk_number: The disk number to operate on
+- :align: The disk alignment (default is 1024)
+- :fs: The type of file system (default is :ntfs)
+- :letter: The drive letter to use
+- :sleep: The amount of time to sleep after executing command (default is 1)
