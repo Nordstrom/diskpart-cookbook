@@ -133,6 +133,10 @@ end
 
 def take_offline(disk)
   Chef::Log.debug("Taking Disk #{disk} offline")
+  setup_script("select disk #{disk}\nonline disk")
+  cmd = shell_out(diskpart, { :returns => [0] })
+
+  check_for_errors(cmd, "DiskPart successfully offlined the selected disk")
 end
 
 def check_for_errors(cmd, expected)
@@ -146,19 +150,19 @@ def check_for_errors(cmd, expected)
 end
 
 def diskpart
-  script_file = "#{Chef::Config[:file_cache_path]}/diskpart.script"
-
   @diskpart ||= begin
     "#{locate_sysnative_cmd("diskpart.exe")} /s #{script_file}"
   end
 end
 
 def setup_script(cmd)
-  script_file = "#{Chef::Config[:file_cache_path]}/diskpart.script"
-  
   ::File.delete(script_file) if ::File.exists?(script_file)
   ::File.open(script_file, 'w') do |script|
     script.write(cmd)
     script.write("\nexit")
   end
+end
+
+def script_file
+  @script_file ||= "#{Chef::Config[:file_cache_path]}/diskpart.script"
 end
