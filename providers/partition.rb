@@ -17,6 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+include Diskpart::Helper
 include Windows::Helper
 include Chef::Mixin::ShellOut
 
@@ -53,9 +54,7 @@ action :assign do
   letter = @new_resource.letter
   updated = false
 
-  letter = letter.gsub(":", "")
-  letter = letter.gsub("/", "")
-  letter = letter.gsub("\\", "")
+  letter = letter[0]
 
   unless assigned?(number, letter)
     assign(number, letter)
@@ -124,31 +123,5 @@ def get_volume_info(disk)
       :fs => fs.nil? ? nil : fs.rstrip.lstrip
     }
 
-  return info
-end
-
-def check_for_errors(cmd, expected)
-  unless cmd.stderr.empty?
-    Chef::Application.fatal!(cmd.stderr)
-  end
-
-  unless cmd.stdout =~ /#{expected}/i
-    Chef::Application.fatal!(cmd.stdout)
-  end
-end
-
-def diskpart
-  script_file = "#{Chef::Config[:file_cache_path]}/diskpart.script"
-
-  "#{locate_sysnative_cmd("diskpart.exe")} /s #{script_file}"
-end
-
-def setup_script(cmd)
-  script_file = "#{Chef::Config[:file_cache_path]}/diskpart.script"
-
-  ::File.delete(script_file) if ::File.exists?(script_file)
-  ::File.open(script_file, 'w') do |script|
-    script.write(cmd)
-    script.write("\nexit")
-  end
+  info
 end
