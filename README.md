@@ -49,6 +49,7 @@ diskpart\_partition
 - :create: Create new primary partition (default)
 - :format: Format partition
 - :assign: Assign a drive letter to partition
+- :extend: Extends the partition to all free space
 
 ### Attribute Parameters
 
