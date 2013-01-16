@@ -20,6 +20,26 @@
 
 module Diskpart
   module Helper
+    def get_disk_info(disk)
+      setup_script("list disk")
+      cmd = shell_out(diskpart, { :returns => [0] })
+      check_for_errors(cmd, "Disk ###")
+      /(?<name>Disk #{disk}\s{0,2})\s{2}(?<status>.{13})\s{2}(?<size>.{7})\s{2}(?<free>.{7})\s{2}(?<dyn>(\s{3}|\s\*\s))\s{2}(?<gpt>(\s{3}|\s\*\s))/ =~ cmd.stdout
+
+      info = {}
+      info =
+        {
+          :name => name.nil? ? nil : name.rstrip.lstrip,
+          :status => status.nil? ? nil : status.rstrip.lstrip,
+          :size => size.nil? ? nil : size.rstrip.lstrip,
+          :free => free.nil? ? nil : free.rstrip.lstrip,
+          :dyn => dyn.nil? ? nil : dyn.rstrip.lstrip,
+          :gpt => gpt.nil? ? nil : gpt.rstrip.lstip
+        }
+
+      info
+    end
+
     def check_for_errors(cmd, expected)
       Chef::Log.debug("Output from command:\nstdout: #{cmd.stdout}\nstderr: #{cmd.stderr}")
 
