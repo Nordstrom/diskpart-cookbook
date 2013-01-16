@@ -18,7 +18,7 @@
 # limitations under the License.
 #
 
-actions :create, :format, :assign
+actions :create, :format, :assign, :extend
 
 attribute :disk_number, :kind_of => Integer
 attribute :align, :kind_of => Integer, :default => 1024
