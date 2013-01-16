@@ -21,6 +21,8 @@
 module Diskpart
   module Helper
     def check_for_errors(cmd, expected)
+      Chef::Log.debug("Output from command:\nstdout: #{cmd.stdout}\nstderr: #{cmd.stderr}")
+
       unless cmd.stderr.empty?
         Chef::Application.fatal!(cmd.stderr)
       end
