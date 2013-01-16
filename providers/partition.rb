@@ -65,6 +65,18 @@ action :assign do
   new_resource.updated_by_last_action(updated)
 end
 
+action :extend do
+  number = new_resource.disk_number
+  updated = false
+
+  if has_free_space?(number)
+    extend_volume(number)
+    updated = true
+  end
+
+  new_resource.updated_by_last_action(updated)
+end
+
 private
 
 def exists?(disk)
@@ -80,6 +92,12 @@ end
 def assigned?(disk, letter)
   volume_info = get_volume_info(disk)
   letter.downcase == volume_info[:letter].downcase
+end
+
+def has_free_space?(disk)
+  volume_info = get_volume_info(disk)
+  free_space, units = volume_info[:disk][:free].split(' ')
+  free_space.to_i > 0 && !(units == "KB" || units == "B")
 end
 
 def create_partition(disk, align)
@@ -107,10 +125,19 @@ def assign(disk, letter)
   check_for_errors(cmd, "DiskPart successfully assigned the drive letter or mount point")
 end
 
+def extend_volume(disk)
+  volume_info = get_volume_info(disk)
+
+  Chef::Log.debug("Extending disk #{disk}, volume #{volume_info[:volume_number]}")
+  setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nextend")
+  cmd = shell_out(diskpart, { :returns => [0] })
+  check_for_errors(cmd, "DiskPart successfully extended the volume")
+end
+
 def get_volume_info(disk)
   setup_script("select disk #{disk}\ndetail disk")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "Disk ID:")
+  check_for_errors(cmd, "Disk ID:", false)
   /(?<volume>Volume\s(?<volume_number>\d{1,3}))\s{2,4}(?<letter>\s{3}|\s\w\s)\s{2}(?<label>.{0,11})\s{2}(?<fs>RAW|FAT|FAT32|exFAT|NTFS)\s{2,4}/i =~ cmd.stdout
 
   info = {}
@@ -120,7 +147,8 @@ def get_volume_info(disk)
       :volume_number => volume_number.nil? ? nil : volume_number.rstrip.lstrip,
       :letter => letter.nil? ? nil : letter.rstrip.lstrip,
       :label => label.nil? ? nil : label.rstrip.lstrip,
-      :fs => fs.nil? ? nil : fs.rstrip.lstrip
+      :fs => fs.nil? ? nil : fs.rstrip.lstrip,
+      :disk => get_disk_info(disk)
     }
 
   info
