@@ -45,25 +45,25 @@ action :convert do
   # of disk conversion we are doing
   case type
   when :gpt
-    unless disk_info[:gpt]
+    unless disk_info[:gpt] == "*"
       convert_disk(number, "GPT")
       sleep(@new_resource.sleep)
       updated = true
     end
   when :mbr
-    if disk_info[:gpt]
+    if disk_info[:gpt] == "*"
       convert_disk(number, "MBR")
       sleep(@new_resource.sleep)
       updated = true
     end
   when :basic
-    if disk_info[:dyn]
+    if disk_info[:dyn] == "*"
       convert_disk(number, "BASIC")
       sleep(@new_resource.sleep)
       updated = true
     end
   when :dynamic
-    unless disk_info[:dyn]
+    unless disk_info[:dyn] == "*"
       convert_disk(number, "DYNAMIC")
       sleep(@new_resource.sleep)
       updated = true
@@ -89,25 +89,9 @@ end
 private
 def online?(disk)
   @online ||= begin
-    setup_script("list disk")
-    cmd = shell_out(diskpart, { :returns => [0] })
-    check_for_errors(cmd, "Disk ###")
-    cmd.stdout =~ /Disk #{disk}\s*Online/i
+    disk_info = get_disk_info(disk)
+    disk_info[:status] == "Online"
   end
-end
-
-def get_disk_info(disk)
-  setup_script("list disk")
-  cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "Disk ###")
-
-  disk_type = {}
-  # Parse the output from diskpart looking for the * in the dyn and gpt columns to determine
-  # if the disk is dynamic or gpt
-  disk_type[:dyn] = (/Disk #{disk}\s*(Offline|Online)(\s*\d*.\w{2}\s*\d*.\w{2})(.{3}\*)/i =~ cmd.stdout)
-  disk_type[:gpt] = (/Disk #{disk}\s*(Offline|Online)(\s*\d*.\w{2}\s*\d*.\w{2})(.{3}\*|.{4})(.{4}\*)/i =~ cmd.stdout)
-
-  disk_type
 end
 
 def clear_read_only(disk)
