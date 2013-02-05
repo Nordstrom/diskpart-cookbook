@@ -104,7 +104,7 @@ def create_partition(disk, align)
   Chef::Log.debug("Creating partition on Disk #{disk} aligned to #{align}")
   setup_script("select disk #{disk}\ncreate partition primary align=#{align}")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "DiskPart succeeded in creating the specified partition")
+  check_for_errors(cmd, "DiskPart succeeded in creating the specified partition", true)
 end
 
 def format(disk, fs)
@@ -113,7 +113,7 @@ def format(disk, fs)
   Chef::Log.debug("Formatting disk #{disk}, Volume #{volume_info[:volume_number]} with file system #{fs.to_s}")
   setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nformat fs=#{fs.to_s} quick")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "DiskPart successfully formatted the volume")
+  check_for_errors(cmd, "DiskPart successfully formatted the volume", true)
 end
 
 def assign(disk, letter)
@@ -122,7 +122,14 @@ def assign(disk, letter)
   Chef::Log.debug("Assigning letter #{letter} to disk #{disk}, volume #{volume_info[:volume_number]}")
   setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nassign letter=#{letter}")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "DiskPart successfully assigned the drive letter or mount point")
+  check_for_errors(cmd, "DiskPart successfully assigned the drive letter or mount point", true)
+  touch_volume(letter)
+end
+
+def touch_volume(letter)
+  Chef::Log.debug("Touching new volume #{letter} to force correct permissions...")
+  ::Dir.mkdir("#{letter}:/avoidingpossiblenameconflict")
+  ::Dir.rmdir("#{letter}:/avoidingpossiblenameconflict")
 end
 
 def extend_volume(disk)
@@ -131,13 +138,13 @@ def extend_volume(disk)
   Chef::Log.debug("Extending disk #{disk}, volume #{volume_info[:volume_number]}")
   setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nextend")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "DiskPart successfully extended the volume")
+  check_for_errors(cmd, "DiskPart successfully extended the volume", true)
 end
 
 def get_volume_info(disk)
   setup_script("select disk #{disk}\ndetail disk")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "Disk ID:", false)
+  check_for_errors(cmd, "Disk ID:", true)
   /(?<volume>Volume\s(?<volume_number>\d{1,3}))\s{2,4}(?<letter>\s{3}|\s\w\s)\s{2}(?<label>.{0,11})\s{2}(?<fs>RAW|FAT|FAT32|exFAT|NTFS)\s{2,4}/i =~ cmd.stdout
 
   info = {}
