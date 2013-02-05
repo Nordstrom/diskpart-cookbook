@@ -23,7 +23,7 @@ module Diskpart
     def get_disk_info(disk)
       setup_script("list disk")
       cmd = shell_out(diskpart, { :returns => [0] })
-      check_for_errors(cmd, "Disk ###", false)
+      check_for_errors(cmd, "Disk ###", true)
       info_line = cmd.stdout.scan(/Disk #{disk}.*/i)
       info_line = info_line.first.gsub("\t", " ")
       /(?<name>.{8})\s{2}(?<status>.{13})\s{2}(?<size>.{7})\s{2}(?<free>.{7})\s{2}(?<dyn>(\s{3}|\s\*\s))\s{2}(?<gpt>(\s{3}|\s\*\s))/i =~ info_line unless info_line.nil?

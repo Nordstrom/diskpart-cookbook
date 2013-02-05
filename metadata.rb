@@ -1,3 +1,4 @@
+name             "diskpart"
 maintainer       "Nordstrom, Inc."
 maintainer_email "kevin.moser@nordstrom.com"
 license          "All rights reserved"

@@ -99,7 +99,7 @@ def clear_read_only(disk)
   setup_script("select disk #{disk}\nattributes disk clear readonly")
   cmd = shell_out(diskpart, { :returns => [0] })
 
-  check_for_errors(cmd, "Disk attributes cleared successfully")
+  check_for_errors(cmd, "Disk attributes cleared successfully", true)
 end
 
 def convert_disk(disk, type)
@@ -107,7 +107,7 @@ def convert_disk(disk, type)
   setup_script("select disk #{disk}\nconvert #{type}")
   cmd = shell_out(diskpart, { :returns => [0] })
 
-  check_for_errors(cmd, "DiskPart successfully converted the selected disk to #{type} format")
+  check_for_errors(cmd, "DiskPart successfully converted the selected disk to #{type} format", true)
 end
 
 def bring_online(disk)
@@ -117,7 +117,7 @@ def bring_online(disk)
   setup_script("select disk #{disk}\nonline disk")
   cmd = shell_out(diskpart, { :returns => [0] })
 
-  check_for_errors(cmd, "DiskPart successfully onlined the selected disk")
+  check_for_errors(cmd, "DiskPart successfully onlined the selected disk", true)
 end
 
 def take_offline(disk)
@@ -125,5 +125,5 @@ def take_offline(disk)
   setup_script("select disk #{disk}\nonline disk")
   cmd = shell_out(diskpart, { :returns => [0] })
 
-  check_for_errors(cmd, "DiskPart successfully offlined the selected disk")
+  check_for_errors(cmd, "DiskPart successfully offlined the selected disk", true)
 end
