@@ -59,6 +59,7 @@ action :assign do
   unless assigned?(number, letter)
     assign(number, letter)
     sleep(@new_resource.sleep)
+    touch_volume(letter)
     updated = true
   end
 
@@ -123,13 +124,11 @@ def assign(disk, letter)
   setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nassign letter=#{letter}")
   cmd = shell_out(diskpart, { :returns => [0] })
   check_for_errors(cmd, "DiskPart successfully assigned the drive letter or mount point", true)
-  touch_volume(letter)
 end
 
 def touch_volume(letter)
   Chef::Log.debug("Touching new volume #{letter} to force correct permissions...")
-  ::Dir.mkdir("#{letter}:/avoidingpossiblenameconflict")
-  ::Dir.rmdir("#{letter}:/avoidingpossiblenameconflict")
+  ::Dir.mkdir("#{letter}:\\supersecretfix")
 end
 
 def extend_volume(disk)
