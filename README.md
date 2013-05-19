@@ -6,6 +6,10 @@ disk and provision.  This cookbook makes one LARGE assumption that must be accou
 assumption is that you have 1 volume/partition per physical disk.  I would argue you always want this, but alas this
 is the assumption foisted upon you by me!
 
+When cloning this repository, clone into a directory named "diskpart" to have the provider names match those listed below.
+
+ex: git clone https://github.com/moserke/diskpart-cookbook.git diskpart
+
 Version
 ======
 
