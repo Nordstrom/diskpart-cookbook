@@ -122,7 +122,7 @@ end
 
 def take_offline(disk)
   Chef::Log.debug("Taking Disk #{disk} offline")
-  setup_script("select disk #{disk}\nonline disk")
+  setup_script("select disk #{disk}\noffline disk")
   cmd = shell_out(diskpart, { :returns => [0] })
 
   check_for_errors(cmd, "DiskPart successfully offlined the selected disk", true)
