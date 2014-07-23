@@ -113,7 +113,7 @@ def format(disk, fs, unit)
   volume_info = get_volume_info(disk)
 
   Chef::Log.debug("Formatting disk #{disk}, Volume #{volume_info[:volume_number]} with file system #{fs.to_s}")
-  setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nformat fs=#{fs.to_s} unit=unit quick")
+  setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nformat fs=#{fs.to_s} unit=#{unit} quick")
   cmd = shell_out(diskpart, { :returns => [0] })
   check_for_errors(cmd, "DiskPart successfully formatted the volume", true)
 end
