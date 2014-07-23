@@ -44,6 +44,7 @@ diskpart\_disk
 - :number: The disk number to operate on
 - :type: The type of disk (:gpt, :mbr - default, :dynamic, :basic)
 - :sleep: The amount of time to sleep after executing command (default is 1)
+- :unit:  set the allocation unit size, default 4096
 
 diskpart\_partition
 ------------------
