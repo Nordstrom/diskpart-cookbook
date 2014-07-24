@@ -38,10 +38,11 @@ end
 action :format do
   number = @new_resource.disk_number
   fs = @new_resource.fs
+  unit = @new_resource.unit
   updated = false
 
   unless formatted?(number)
-    format(number, fs)
+    format(number, fs, unit)
     sleep(@new_resource.sleep)
     updated = true
   end
@@ -108,11 +109,11 @@ def create_partition(disk, align)
   check_for_errors(cmd, "DiskPart succeeded in creating the specified partition", true)
 end
 
-def format(disk, fs)
+def format(disk, fs, unit)
   volume_info = get_volume_info(disk)
 
   Chef::Log.debug("Formatting disk #{disk}, Volume #{volume_info[:volume_number]} with file system #{fs.to_s}")
-  setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nformat fs=#{fs.to_s} quick")
+  setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nformat fs=#{fs.to_s} unit=#{unit} quick")
   cmd = shell_out(diskpart, { :returns => [0] })
   check_for_errors(cmd, "DiskPart successfully formatted the volume", true)
 end
