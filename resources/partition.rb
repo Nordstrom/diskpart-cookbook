@@ -18,13 +18,15 @@
 # limitations under the License.
 #
 
-actions :create, :format, :assign, :extend
+actions :create, :format, :assign, :extend, :create_primary
 
 attribute :disk_number, :kind_of => Integer
+attribute :volume_number, :kind_of => Integer
 attribute :align, :kind_of => Integer, :default => 1024
 attribute :fs, :kind_of => Symbol, :default => :ntfs
 attribute :letter, :kind_of => String, :name_attribute => true
 attribute :sleep, :kind_of => Integer, :default => 1
 attribute :unit, :kind_of => Integer, :default => 4096
+attribute :size, :kind_of => Integer, :default => 1
 
 default_action :create

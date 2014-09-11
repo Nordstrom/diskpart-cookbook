@@ -44,7 +44,6 @@ diskpart\_disk
 - :number: The disk number to operate on
 - :type: The type of disk (:gpt, :mbr - default, :dynamic, :basic)
 - :sleep: The amount of time to sleep after executing command (default is 1)
-- :unit:  set the allocation unit size, default 4096
 
 diskpart\_partition
 ------------------
@@ -55,6 +54,7 @@ diskpart\_partition
 - :format: Format partition
 - :assign: Assign a drive letter to partition
 - :extend: Extends the partition to all free space
+- :create_primary: Creates a primary partition
 
 ### Attribute Parameters
 
@@ -63,3 +63,5 @@ diskpart\_partition
 - :fs: The type of file system (default is :ntfs)
 - :letter: The drive letter to use
 - :sleep: The amount of time to sleep after executing command (default is 1)
+- :size: The size in Mb the partition will have (default is 1)
+
