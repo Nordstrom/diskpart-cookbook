@@ -37,6 +37,7 @@ end
 
 action :create_primary do
   disk = @new_resource.disk_number
+  align = @new_resource.align
   letter = @new_resource.letter
   size = @new_resource.size
 
@@ -56,7 +57,7 @@ action :create_primary do
     Chef::Log.info "Creating drive #{letter} in disk #{disk} with size #{size}GB"
 
     size_in_mb = size * 1024
-    create_primary_partition(disk, letter, size_in_mb)
+    create_primary_partition(disk, letter, size_in_mb, align)
 
     sleep(@new_resource.sleep)
 
@@ -69,11 +70,10 @@ end
 action :format do
   number = @new_resource.disk_number
   fs = @new_resource.fs
-  unit = @new_resource.unit
   updated = false
 
   unless formatted?(number)
-    format(number, fs, unit)
+    format(number, fs)
     sleep(@new_resource.sleep)
     updated = true
   end
@@ -91,7 +91,6 @@ action :assign do
   unless assigned?(number, letter)
     assign(number, letter)
     sleep(@new_resource.sleep)
-    touch_volume(letter)
     updated = true
   end
 
@@ -99,6 +98,7 @@ action :assign do
 end
 
 action :extend do
+  Chef::Log.debug "extend: disk number = #{new_resource.disk_number}, volume number = #{new_resource.volume_number}"
   number = new_resource.disk_number
   updated = false
 
@@ -125,7 +125,7 @@ end
 
 def formatted?(disk)
   volume_info = get_volume_info(disk)
-  !(volume_info[:fs] == "RAW")
+  !(volume_info[:fs] == 'RAW')
 end
 
 def assigned?(disk, letter)
@@ -135,20 +135,21 @@ end
 
 def has_free_space?(disk)
   volume_info = get_volume_info(disk)
+  Chef::Log.debug "volume_info: #{volume_info}"
   free_space, units = volume_info[:disk][:free].split(' ')
-  free_space.to_i > 0 && !(units == "KB" || units == "B")
+  free_space.to_i > 0 && !(units == 'KB' || units == 'B')
 end
 
 def create_partition(disk, align)
   Chef::Log.debug("Creating partition on Disk #{disk} aligned to #{align}")
   setup_script("select disk #{disk}\ncreate partition primary align=#{align}")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "DiskPart succeeded in creating the specified partition", true)
+  check_for_errors(cmd, 'DiskPart succeeded in creating the specified partition', true)
 end
 
-def create_primary_partition(disk, letter, size)
-  Chef::Log.debug("Creating partition #{letter} on Disk #{disk} with size #{size}")
-  setup_script("select disk #{disk}\ncreate partition primary size=#{size}\nformat quick\nassign letter #{letter}")
+def create_primary_partition(disk, letter, size, align)
+  Chef::Log.debug("Creating partition #{letter} on Disk #{disk} with size #{size} and align #{align}")
+  setup_script("select disk #{disk}\ncreate partition primary size=#{size} align=#{align}\nformat quick\nassign letter #{letter}")
   cmd = shell_out(diskpart, { :returns => [0] })
   check_for_errors(cmd, 'DiskPart succeeded in creating the specified partition', true)
 end
@@ -171,12 +172,13 @@ def format(disk, fs)
 end
 
 def assign(disk, letter)
-  volume_info = get_volume_info(disk)
+  volume_number = new_resource.volume_number ||
+    get_volume_info(disk)[:volume_number]
 
-  Chef::Log.debug("Assigning letter #{letter} to disk #{disk}, volume #{volume_info[:volume_number]}")
-  setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nassign letter=#{letter}")
+  Chef::Log.debug("Assigning letter #{letter} to disk #{disk}, volume #{volume_number}")
+  setup_script("select disk #{disk}\nselect volume #{volume_number}\nassign letter=#{letter}")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "DiskPart successfully assigned the drive letter or mount point", true)
+  check_for_errors(cmd, 'DiskPart successfully assigned the drive letter or mount point', true)
 end
 
 def touch_volume(letter)
@@ -185,18 +187,19 @@ def touch_volume(letter)
 end
 
 def extend_volume(disk)
-  volume_info = get_volume_info(disk)
+  volume_number = new_resource.volume_number ||
+    get_volume_info(disk)[:volume_number]
 
-  Chef::Log.debug("Extending disk #{disk}, volume #{volume_info[:volume_number]}")
-  setup_script("select disk #{disk}\nselect volume #{volume_info[:volume_number]}\nextend")
+  Chef::Log.debug("Extending disk #{disk}, volume #{volume_number}")
+  setup_script("select disk #{disk}\nselect volume #{volume_number}\nextend")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "DiskPart successfully extended the volume", true)
+  check_for_errors(cmd, 'DiskPart successfully extended the volume', true)
 end
 
 def get_volume_info(disk)
   setup_script("select disk #{disk}\ndetail disk")
   cmd = shell_out(diskpart, { :returns => [0] })
-  check_for_errors(cmd, "Disk ID:", true)
+  check_for_errors(cmd, 'Disk ID:', true)
   /(?<volume>Volume\s(?<volume_number>\d{1,3}))\s{2,4}(?<letter>\s{3}|\s\w\s)\s{2}(?<label>.{0,11})\s{2}(?<fs>RAW|FAT|FAT32|exFAT|NTFS)\s{2,4}/i =~ cmd.stdout
 
   info = {}
