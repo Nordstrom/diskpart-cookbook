@@ -18,7 +18,7 @@
 # limitations under the License.
 #
 
-actions :create, :format, :assign, :extend, :create_primary
+actions :create, :format, :assign, :extend, :create_primary, :create_logical, :create_extended
 
 attribute :disk_number, :kind_of => Integer
 attribute :volume_number, :kind_of => Integer
