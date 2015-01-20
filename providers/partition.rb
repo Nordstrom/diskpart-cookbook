@@ -36,6 +36,14 @@ action :create do
 end
 
 action :create_primary do
+  action_create_partition(:primary)
+end
+
+action :create_logical do
+  action_create_partition(:logical)
+end
+
+def action_create_partition(type)
   disk = @new_resource.disk_number
   align = @new_resource.align
   letter = @new_resource.letter
@@ -57,7 +65,38 @@ action :create_primary do
     Chef::Log.info "Creating drive #{letter} in disk #{disk} with size #{size}GB"
 
     size_in_mb = size * 1024
-    create_primary_partition(disk, letter, size_in_mb, align)
+    create_specific_partition(type, disk, letter, size_in_mb, align)
+
+    sleep(@new_resource.sleep)
+
+    updated = true
+  end
+
+  new_resource.updated_by_last_action(updated)
+end
+
+action :create_extended do
+  disk = @new_resource.disk_number
+  align = @new_resource.align
+  letter = @new_resource.letter
+  size = @new_resource.size
+
+  Chef::Log.info "checking drive info"
+
+  drive_info = get_drive_info(letter)
+
+  Chef::Log.info "#{letter} drive info: volume => #{drive_info[:volume]}, size => #{drive_info[:size]}"
+
+  updated = false
+
+  unless drive_info[:size] == size
+    unless drive_info[:volume].nil?
+      delete_volume(drive_info[:volume])
+    end
+
+    Chef::Log.info "Creating extended partition in disk #{disk}"
+
+    create_extended_partition(disk, align)
 
     sleep(@new_resource.sleep)
 
@@ -147,9 +186,16 @@ def create_partition(disk, align)
   check_for_errors(cmd, 'DiskPart succeeded in creating the specified partition', true)
 end
 
-def create_primary_partition(disk, letter, size, align)
+def create_specific_partition(type, disk, letter, size, align)
   Chef::Log.debug("Creating partition #{letter} on Disk #{disk} with size #{size} and align #{align}")
-  setup_script("select disk #{disk}\ncreate partition primary size=#{size} align=#{align}\nformat quick\nassign letter #{letter}")
+  setup_script("select disk #{disk}\ncreate partition #{type} size=#{size} align=#{align}\nformat quick\nassign letter #{letter}")
+  cmd = shell_out(diskpart, { :returns => [0] })
+  check_for_errors(cmd, 'DiskPart succeeded in creating the specified partition', true)
+end
+
+def create_extended_partition(disk, align)
+  Chef::Log.debug("Creating extended partition on Disk #{disk} with align #{align}")
+  setup_script("select disk #{disk}\ncreate partition extended align=#{align}")
   cmd = shell_out(diskpart, { :returns => [0] })
   check_for_errors(cmd, 'DiskPart succeeded in creating the specified partition', true)
 end
