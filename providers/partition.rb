@@ -67,6 +67,17 @@ action :create_primary do
   new_resource.updated_by_last_action(updated)
 end
 
+action :create_striped do
+  disk = @new_resource.disks_number
+  size = @new_resource.size
+  
+  unless exists?(disk[1])
+    size_in_mb = size * 1024
+    create_striped_volume(disk,size_in_mb)
+    new_resource.updated_by_last_action(true)
+  end
+end
+
 action :format do
   number = @new_resource.disk_number
   fs = @new_resource.fs
@@ -159,6 +170,13 @@ def delete_volume(volume)
   setup_script("select volume #{volume}\ndelete volume override")
   cmd = shell_out(diskpart, { :returns => [0] })
   check_for_errors(cmd, 'DiskPart successfully deleted the selected volume.', true)
+end
+
+def create_striped_volume(disks,size)
+  Chef::Log.debug("Creatig stripped volume with #{disks.join(',')}")
+  setup_script("select disk #{disks[0]}\ncreate volume stripe disk=#{disks.join(',')}")
+  cmd = shell_out(diskpart, { :returns => [0] })
+  check_for_errors(cmd, 'DiskPart successfully created the volume.', true)
 end
 
 def format(disk, fs)
