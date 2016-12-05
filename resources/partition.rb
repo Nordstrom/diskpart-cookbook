@@ -18,9 +18,10 @@
 # limitations under the License.
 #
 
-actions :create, :format, :assign, :extend, :create_primary
+actions :create, :format, :assign, :extend, :create_primary,:create_striped
 
 attribute :disk_number, :kind_of => Integer
+attribute :disks_number, :kind_of => Array # It could be a good idea to use a array or list instead.
 attribute :volume_number, :kind_of => Integer
 attribute :align, :kind_of => Integer, :default => 1024
 attribute :fs, :kind_of => Symbol, :default => :ntfs
