@@ -62,6 +62,7 @@ diskpart\_partition
 - :align: The disk alignment (default is 1024)
 - :fs: The type of file system (default is :ntfs)
 - :letter: The drive letter to use
+- :label: The drive label to use
 - :sleep: The amount of time to sleep after executing command (default is 1)
 - :size: The size in Mb the partition will have (default is 1)
 
