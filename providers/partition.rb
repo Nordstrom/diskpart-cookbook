@@ -70,10 +70,11 @@ end
 action :format do
   number = @new_resource.disk_number
   fs = @new_resource.fs
+  label = @new_resource.label
   updated = false
 
   unless formatted?(number)
-    format(number, fs)
+    format(number, fs, label)
     sleep(@new_resource.sleep)
     updated = true
   end
@@ -161,12 +162,12 @@ def delete_volume(volume)
   check_for_errors(cmd, 'DiskPart successfully deleted the selected volume.', true)
 end
 
-def format(disk, fs)
+def format(disk, fs, label)
   volume_number = new_resource.volume_number ||
     get_volume_info(disk)[:volume_number]
 
   Chef::Log.debug("Formatting disk #{disk}, Volume #{volume_number} with file system #{fs.to_s}")
-  setup_script("select disk #{disk}\nselect volume #{volume_number}\nformat fs=#{fs.to_s} quick")
+  setup_script("select disk #{disk}\nselect volume #{volume_number}\nformat fs=#{fs.to_s} label=#{label} quick")
   cmd = shell_out(diskpart, { :returns => [0] })
   check_for_errors(cmd, 'DiskPart successfully formatted the volume', true)
 end
