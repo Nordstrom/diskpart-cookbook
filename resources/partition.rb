@@ -25,6 +25,7 @@ attribute :volume_number, :kind_of => Integer
 attribute :align, :kind_of => Integer, :default => 1024
 attribute :fs, :kind_of => Symbol, :default => :ntfs
 attribute :letter, :kind_of => String, :name_attribute => true
+attribute :label, :kind_of => String, :default => "New Disk"
 attribute :sleep, :kind_of => Integer, :default => 1
 attribute :unit, :kind_of => Integer, :default => 4096
 attribute :size, :kind_of => Integer, :default => 1
