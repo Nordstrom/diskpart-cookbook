@@ -22,7 +22,7 @@ module Diskpart
   module Helper
     def get_disk_info(disk)
       setup_script("list disk")
-      cmd = shell_out(diskpart, { :returns => [0] })
+      cmd = shell_out(diskpart, :returns => [0])
       check_for_errors(cmd, "Disk ###", true)
       info_line = cmd.stdout.scan(/Disk #{disk}.*/i)
       info_line = info_line.first.gsub("\t", " ")

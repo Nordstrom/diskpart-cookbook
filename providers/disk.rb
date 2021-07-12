@@ -97,7 +97,7 @@ end
 def clear_read_only(disk)
   Chef::Log.debug("Clearing Read-only on Disk #{disk}")
   setup_script("select disk #{disk}\nattributes disk clear readonly")
-  cmd = shell_out(diskpart, { :returns => [0] })
+  cmd = shell_out(diskpart, :returns => [0] )
 
   check_for_errors(cmd, "Disk attributes cleared successfully", true)
 end
@@ -105,7 +105,7 @@ end
 def convert_disk(disk, type)
   Chef::Log.debug("Converting Disk #{disk} to #{type}")
   setup_script("select disk #{disk}\nconvert #{type}")
-  cmd = shell_out(diskpart, { :returns => [0] })
+  cmd = shell_out(diskpart,  :returns => [0] )
 
   check_for_errors(cmd, "DiskPart successfully converted the selected disk to #{type} format", true)
 end
@@ -115,7 +115,7 @@ def bring_online(disk)
 
   Chef::Log.debug("Bringing Disk #{disk} online")
   setup_script("select disk #{disk}\nonline disk")
-  cmd = shell_out(diskpart, { :returns => [0] })
+  cmd = shell_out(diskpart,  :returns => [0] )
 
   check_for_errors(cmd, "DiskPart successfully onlined the selected disk", true)
 end
@@ -123,7 +123,7 @@ end
 def take_offline(disk)
   Chef::Log.debug("Taking Disk #{disk} offline")
   setup_script("select disk #{disk}\noffline disk")
-  cmd = shell_out(diskpart, { :returns => [0] })
+  cmd = shell_out(diskpart,  :returns => [0] )
 
   check_for_errors(cmd, "DiskPart successfully offlined the selected disk", true)
 end
